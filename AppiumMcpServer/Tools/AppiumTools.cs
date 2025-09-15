@@ -1,11 +1,14 @@
-﻿using ModelContextProtocol.Server;
+﻿using System;
+using System.ComponentModel;
+using System.IO;
+using System.Threading;
+using ModelContextProtocol.Server;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Appium;
 using OpenQA.Selenium.Appium.Android;
 using OpenQA.Selenium.Appium.iOS;
 using OpenQA.Selenium.Appium.Service;
 using OpenQA.Selenium.Appium.Windows;
-using System.ComponentModel;
 
 namespace AppiumMcpServer.Tools
 {
@@ -14,7 +17,7 @@ namespace AppiumMcpServer.Tools
     /// Supports Android, iOS, and Windows platforms through the Model Context Protocol (MCP) server framework.
     /// </summary>
     [McpServerToolType]
-    public class AppiumTools
+    public partial class AppiumTools
     {
         /// <summary>
         /// The current active Appium driver instance for interacting with applications.
@@ -195,7 +198,7 @@ namespace AppiumMcpServer.Tools
         string ConnectiOS(
             Uri serverUri,
             AppiumOptions
-            options,
+                options,
             string deviceName,
             string? bundleId,
             string? appPath,
@@ -248,154 +251,7 @@ namespace AppiumMcpServer.Tools
             _driver = new WindowsDriver(serverUri, options);
             return $"Successfully connected to Windows app: {appPath ?? "Calculator"}";
         }
-
-        /// <summary>
-        /// Installs an application package on the connected device.
-        /// </summary>
-        /// <param name="appPath">Full path to the application package file</param>
-        /// <returns>Installation status message</returns>
-        [McpServerTool(Name = "appium_install_app")]
-        [Description("Install an app on the connected device.")]
-        public string InstallApp(string appPath)
-        {
-            try
-            {
-                if (_driver == null)
-                {
-                    return "No active connection. Use appium_connect_app first.";
-                }
-
-                if (!File.Exists(appPath))
-                {
-                    return $"App file not found: {appPath}";
-                }
-
-                _driver.InstallApp(appPath);
-                return $"App installed successfully: {appPath}";
-            }
-            catch (Exception ex)
-            {
-                return $"Failed to install app: {ex.Message}";
-            }
-        }
-
-        /// <summary>
-        /// Performs a tap/click action on the specified UI element.
-        /// </summary>
-        /// <param name="locatorStrategy">Element location strategy (id, xpath, text, etc.)</param>
-        /// <param name="locatorValue">Value used with the locator strategy to find the element</param>
-        /// <param name="timeoutSeconds">Maximum time to wait for element to be found (default: 10)</param>
-        /// <returns>Action status message</returns>
-        [McpServerTool(Name = "appium_tap_element")]
-        [Description("Tap on an element.")]
-        public async Task<string> TapElement(
-            string locatorStrategy,
-            string locatorValue,
-            int timeoutSeconds = 10)
-        {
-            try
-            {
-                if (_driver == null)
-                {
-                    return "No active connection. Use appium_connect_app first.";
-                }
-
-                var element = FindElementWithTimeout(locatorStrategy, locatorValue, timeoutSeconds);
-                if (element == null)
-                {
-                    return $"Element not found using {locatorStrategy}: {locatorValue}";
-                }
-
-                element.Click();
-                return $"Successfully tapped element: {locatorStrategy}={locatorValue}";
-            }
-            catch (Exception ex)
-            {
-                return $"Failed to tap element: {ex.Message}";
-            }
-        }
-
-        /// <summary>
-        /// Sends text input to the specified UI element.
-        /// </summary>
-        /// <param name="locatorStrategy">Element location strategy (id, xpath, text, etc.)</param>
-        /// <param name="locatorValue">Value used with the locator strategy to find the element</param>
-        /// <param name="text">Text to send to the element</param>
-        /// <param name="clearFirst">Whether to clear existing text before sending new text (default: true)</param>
-        /// <param name="timeoutSeconds">Maximum time to wait for element to be found (default: 10)</param>
-        /// <returns>Action status message</returns>
-        [McpServerTool(Name = "appium_send_keys")]
-        [Description("Send text to an element.")]
-        public string SendKeys(
-            string locatorStrategy,
-            string locatorValue,
-            string text,
-            bool clearFirst = true,
-            int timeoutSeconds = 10)
-        {
-            try
-            {
-                if (_driver == null)
-                {
-                    return "No active connection. Use appium_connect_app first.";
-                }
-
-                var element = FindElementWithTimeout(locatorStrategy, locatorValue, timeoutSeconds);
-                if (element == null)
-                {
-                    return $"Element not found using {locatorStrategy}: {locatorValue}";
-                }
-
-                if (clearFirst)
-                {
-                    element.Clear();
-                }
-
-                element.SendKeys(text);
-                return $"Successfully sent text '{text}' to element: {locatorStrategy}={locatorValue}";
-            }
-            catch (Exception ex)
-            {
-                return $"Failed to send keys: {ex.Message}";
-            }
-        }
-
-        /// <summary>
-        /// Retrieves the text content from the specified UI element.
-        /// </summary>
-        /// <param name="locatorStrategy">Element location strategy (id, xpath, text, etc.)</param>
-        /// <param name="locatorValue">Value used with the locator strategy to find the element</param>
-        /// <param name="timeoutSeconds">Maximum time to wait for element to be found (default: 10)</param>
-        /// <returns>The text content of the element or error message</returns>
-        [McpServerTool(Name = "appium_get_element_text")]
-        [Description("Get text from an element.")]
-        public string GetElementText(
-            string locatorStrategy,
-            string locatorValue,
-            int timeoutSeconds = 10)
-        {
-            try
-            {
-                if (_driver == null)
-                {
-                    return "No active connection. Use appium_connect_app first.";
-                }
-
-                var element = FindElementWithTimeout(locatorStrategy, locatorValue, timeoutSeconds);
-                if (element == null)
-                {
-                    return $"Element not found using {locatorStrategy}: {locatorValue}";
-                }
-
-                var text = element.Text;
-                return $"Element text: '{text}'";
-            }
-            catch (Exception ex)
-            {
-                return $"Failed to get element text: {ex.Message}";
-            }
-        }
-
+        
         /// <summary>
         /// Captures a screenshot of the current application state.
         /// </summary>
@@ -471,6 +327,7 @@ namespace AppiumMcpServer.Tools
                     _currentPlatform = "";
                     return "Successfully disconnected from app";
                 }
+
                 return "No active connection to disconnect";
             }
             catch (Exception ex)
