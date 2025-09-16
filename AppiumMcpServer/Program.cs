@@ -13,6 +13,7 @@ internal class Program
             builder.Services
                 .AddMcpServer()
                 .WithStdioServerTransport()
+                .WithResourcesFromAssembly()
                 .WithToolsFromAssembly();
 
             builder.Logging.ClearProviders();
