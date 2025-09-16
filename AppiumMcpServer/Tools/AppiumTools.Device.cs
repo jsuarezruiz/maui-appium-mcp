@@ -4,6 +4,8 @@ using System.IO;
 using ModelContextProtocol.Server;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Appium.Android;
+using OpenQA.Selenium.Appium.Android.Enums;
+using OpenQA.Selenium.Appium.Interfaces;
 using OpenQA.Selenium.Appium.iOS;
 using OpenQA.Selenium.Interactions;
 
@@ -207,6 +209,58 @@ namespace AppiumMcpServer.Tools
         }
         
         /// <summary>
+        /// Presses the Enter key on the device.
+        /// </summary>
+        /// <returns>Action status message</returns>
+        [McpServerTool(Name = "appium_press_enter")]
+        [Description("Press the Enter key on the device.")]
+        public string PressEnter()
+        {
+            try
+            {
+                if (_driver == null)
+                {
+                    return "No active connection. Use appium_connect_app first.";
+                }
+
+                if (_currentPlatform == "android" && _driver is AndroidDriver androidDriver)
+                {
+                    // Android: Use key event for Enter key (keycode 66)
+                    if (androidDriver is ISendsKeyEvents keyEventDriver)
+                    {
+                        keyEventDriver.PressKeyCode(AndroidKeyCode.Enter);
+                        return "Successfully pressed Enter key (Android)";
+                    }
+                    else
+                    {
+                        // Fallback to Actions
+                        var actions = new Actions(_driver);
+                        actions.SendKeys(Keys.Enter).Perform();
+                        return "Successfully pressed Enter key using Actions (Android)";
+                    }
+                }
+                else if (_currentPlatform == "ios" && _driver is IOSDriver iosDriver)
+                {
+                    // iOS: Use Actions to send Enter key
+                    var actions = new Actions(_driver);
+                    actions.SendKeys(Keys.Enter).Perform();
+                    return "Successfully pressed Enter key (iOS)";
+                }
+                else
+                {
+                    // Generic approach for other platforms
+                    var actions = new Actions(_driver);
+                    actions.SendKeys(Keys.Enter).Perform();
+                    return "Successfully pressed Enter key (Generic)";
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"Failed to press Enter key: {ex.Message}";
+            }
+        }
+        
+        /// <summary>
         /// Dismisses the soft keyboard if it's currently shown.
         /// </summary>
         /// <returns>Action status message</returns>
@@ -278,6 +332,106 @@ namespace AppiumMcpServer.Tools
             catch (Exception ex)
             {
                 return $"Failed to check keyboard status: {ex.Message}";
+            }
+        }
+        
+        /// <summary>
+        /// Sets the device orientation to landscape mode.
+        /// </summary>
+        /// <returns>Action status message</returns>
+        [McpServerTool(Name = "appium_set_orientation_landscape")]
+        [Description("Change device orientation to landscape mode.")]
+        public string SetOrientationLandscape()
+        {
+            try
+            {
+                if (_driver == null)
+                {
+                    return "No active connection. Use appium_connect_app first.";
+                }
+
+                if (_currentPlatform == "android" && _driver is AndroidDriver androidDriver)
+                {
+                    // Android: Set orientation to landscape
+                    androidDriver.Orientation = ScreenOrientation.Landscape;
+                    return "Successfully set orientation to landscape (Android)";
+                }
+                else if (_currentPlatform == "ios" && _driver is IOSDriver iosDriver)
+                {
+                    // iOS: Set orientation to landscape
+                    iosDriver.Orientation = ScreenOrientation.Landscape;
+                    return "Successfully set orientation to landscape (iOS)";
+                }
+                else
+                {
+                    // Generic approach for other platforms
+                    try
+                    {
+                        _driver.Manage().Window.Size = new System.Drawing.Size(
+                            Math.Max(_driver.Manage().Window.Size.Width, _driver.Manage().Window.Size.Height),
+                            Math.Min(_driver.Manage().Window.Size.Width, _driver.Manage().Window.Size.Height)
+                        );
+                        return "Attempted to set orientation to landscape (Generic - may not work on all platforms)";
+                    }
+                    catch (Exception)
+                    {
+                        return "Orientation change not supported on this platform";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"Failed to set orientation to landscape: {ex.Message}";
+            }
+        }
+
+        /// <summary>
+        /// Sets the device orientation to portrait mode.
+        /// </summary>
+        /// <returns>Action status message</returns>
+        [McpServerTool(Name = "appium_set_orientation_portrait")]
+        [Description("Change device orientation to portrait mode.")]
+        public string SetOrientationPortrait()
+        {
+            try
+            {
+                if (_driver == null)
+                {
+                    return "No active connection. Use appium_connect_app first.";
+                }
+
+                if (_currentPlatform == "android" && _driver is AndroidDriver androidDriver)
+                {
+                    // Android: Set orientation to portrait
+                    androidDriver.Orientation = ScreenOrientation.Portrait;
+                    return "Successfully set orientation to portrait (Android)";
+                }
+                else if (_currentPlatform == "ios" && _driver is IOSDriver iosDriver)
+                {
+                    // iOS: Set orientation to portrait
+                    iosDriver.Orientation = ScreenOrientation.Portrait;
+                    return "Successfully set orientation to portrait (iOS)";
+                }
+                else
+                {
+                    // Generic approach for other platforms
+                    try
+                    {
+                        _driver.Manage().Window.Size = new System.Drawing.Size(
+                            Math.Min(_driver.Manage().Window.Size.Width, _driver.Manage().Window.Size.Height),
+                            Math.Max(_driver.Manage().Window.Size.Width, _driver.Manage().Window.Size.Height)
+                        );
+                        return "Attempted to set orientation to portrait (Generic - may not work on all platforms)";
+                    }
+                    catch (Exception)
+                    {
+                        return "Orientation change not supported on this platform";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"Failed to set orientation to portrait: {ex.Message}";
             }
         }
     }
