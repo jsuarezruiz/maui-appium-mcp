@@ -1,12 +1,10 @@
-﻿using System;
-using System.ComponentModel;
-using System.IO;
-using System.Threading;
+﻿using System.ComponentModel;
 using ModelContextProtocol.Server;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Appium;
 using OpenQA.Selenium.Appium.Android;
 using OpenQA.Selenium.Appium.iOS;
+using OpenQA.Selenium.Appium.Mac;
 using OpenQA.Selenium.Appium.Service;
 using OpenQA.Selenium.Appium.Windows;
 
@@ -133,11 +131,15 @@ namespace AppiumMcpServer.Tools
                     case "ios":
                         return ConnectiOS(serverUri, options, deviceName, bundleId, appPath, udid);
 
+                    case "mac" or "macos":
+                        _currentPlatform = "mac";
+                        return ConnectMac(serverUri, options, deviceName, bundleId, appPath);
+                    
                     case "windows":
                         return ConnectWindows(serverUri, options, deviceName, appPath);
 
                     default:
-                        return $"Unsupported platform: {platform}. Use 'android', 'ios', or 'windows'";
+                        return $"Unsupported platform: {platform}. Use 'android', 'ios', 'mac', or 'windows'";
                 }
             }
             catch (Exception ex)
@@ -229,6 +231,38 @@ namespace AppiumMcpServer.Tools
             return $"Successfully connected to iOS app: {bundleId ?? appPath ?? "com.apple.Preferences"}";
         }
 
+        /// <summary>
+        /// Configures and establishes connection to a macOS application.
+        /// </summary>
+        /// <param name="serverUri">Appium server URI</param>
+        /// <param name="options">Appium options to configure</param>
+        /// <param name="deviceName">macOS device name</param>
+        /// <param name="bundleId">macOS app bundle identifier</param>
+        /// <param name="appPath">Path to macOS application</param>
+        /// <returns>Connection status message</returns>
+        string ConnectMac(Uri serverUri, AppiumOptions options, string deviceName, 
+            string? bundleId, string? appPath)
+        {
+            options.PlatformName = "Mac";
+            options.DeviceName = deviceName;
+            options.AutomationName = "Mac2";
+
+            if (!string.IsNullOrEmpty(bundleId))
+            {
+                options.AddAdditionalAppiumOption("bundleId", bundleId);
+            }
+            else if (!string.IsNullOrEmpty(appPath))
+            {
+                options.App = appPath;
+            }
+
+            // Preserve app state between sessions
+            options.AddAdditionalAppiumOption("noReset", true);
+
+            _driver = new MacDriver(serverUri, options);
+            return $"Successfully connected to macOS app: {bundleId ?? appPath}";
+        }
+        
         /// <summary>
         /// Configures and establishes connection to a Windows application.
         /// </summary>
