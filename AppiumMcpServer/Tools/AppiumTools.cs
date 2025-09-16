@@ -12,7 +12,7 @@ namespace AppiumMcpServer.Tools
 {
     /// <summary>
     /// Provides Appium automation tools for cross-platform mobile and desktop application testing.
-    /// Supports Android, iOS, and Windows platforms through the Model Context Protocol (MCP) server framework.
+    /// Supports Android, iOS, Mac, and Windows platforms through the Model Context Protocol (MCP) server framework.
     /// </summary>
     [McpServerToolType]
     public partial class AppiumTools
@@ -28,7 +28,7 @@ namespace AppiumMcpServer.Tools
         static AppiumLocalService? _appiumService;
 
         /// <summary>
-        /// Tracks the current platform (android, ios, windows) for platform-specific operations.
+        /// Tracks the current platform (android, ios, mac, windows) for platform-specific operations.
         /// </summary>
         static string _currentPlatform = "";
 
@@ -87,7 +87,7 @@ namespace AppiumMcpServer.Tools
         }
 
         /// <summary>
-        /// Establishes a connection to an application on Android, iOS, or Windows platforms.
+        /// Establishes a connection to an application on Android, iOS, Mac or Windows platforms.
         /// </summary>
         /// <param name="platform">Target platform: "android", "ios", or "windows"</param>
         /// <param name="deviceName">Name or identifier of the target device</param>
