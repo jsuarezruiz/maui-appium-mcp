@@ -532,5 +532,69 @@ namespace AppiumMcpServer.Tools
                 return $"Failed to unlock screen: {ex.Message}";
             }
         }
+
+        /// <summary>
+        /// Toggle airplane mode on device.
+        /// Functionality that's only available on Android.
+        /// </summary>
+        [McpServerTool(Name = "appium_toggle_airplane_mode")]
+        [Description("Toggles airplane mode on the Android device. Only available on Android devices.")]
+        public string ToggleAirplaneMode()
+        {
+            try
+            {
+                if (_driver == null)
+                {
+                    return "No active connection. Use appium_connect_app first.";
+                }
+
+                // Check if driver is Android
+                if (_driver is not AndroidDriver)
+                {
+                    return "Toggle airplane mode is only supported on Android devices.";
+                }
+
+                // Execute airplane mode toggle command
+                _driver.ExecuteScript("mobile: toggleAirplaneMode", new Dictionary<string, object>());
+
+                return "Successfully toggled airplane mode on the device.";
+            }
+            catch (Exception ex)
+            {
+                return $"Failed to toggle airplane mode: {ex.Message}";
+            }
+        }
+
+        /// <summary>
+        /// Switch the state of the wifi service.
+        /// Functionality that's only available on Android.
+        /// </summary>
+        [McpServerTool(Name = "appium_toggle_wifi")]
+        [Description("Toggles WiFi on the Android device. Only available on Android devices.")]
+        public string ToggleWifi()
+        {
+            try
+            {
+                if (_driver == null)
+                {
+                    return "No active connection. Use appium_connect_app first.";
+                }
+
+                // Check if driver is Android
+                if (_driver is not AndroidDriver)
+                {
+                    return "Toggle WiFi is only supported on Android devices.";
+                }
+
+                // Execute WiFi toggle command
+                _driver.ExecuteScript("mobile: toggleWifi", new Dictionary<string, object>());
+
+                return "Successfully toggled WiFi on the device.";
+            }
+            catch (Exception ex)
+            {
+                return $"Failed to toggle WiFi: {ex.Message}";
+            }
+        }
     }
 }
