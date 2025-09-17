@@ -42,7 +42,7 @@ namespace AppiumMcpServer.Tools
                 return $"Failed to install app: {ex.Message}";
             }
         }
-        
+
         /// <summary>
         /// Uninstalls an application from the connected device.
         /// </summary>
@@ -72,7 +72,7 @@ namespace AppiumMcpServer.Tools
                 }
 
                 _driver.RemoveApp(identifier);
-                
+
                 return $"Successfully uninstalled app: {identifier}";
             }
             catch (Exception ex)
@@ -80,7 +80,7 @@ namespace AppiumMcpServer.Tools
                 return $"Failed to uninstall app '{identifier}': {ex.Message}";
             }
         }
-        
+
         /// <summary>
         /// Checks if an application is installed on the device.
         /// </summary>
@@ -110,7 +110,7 @@ namespace AppiumMcpServer.Tools
                 return $"Failed to check app installation status for '{identifier}': {ex.Message}";
             }
         }
-        
+
         /// <summary>
         /// Navigates back using the device's back button (Android) or back navigation.
         /// </summary>
@@ -134,7 +134,7 @@ namespace AppiumMcpServer.Tools
                 return $"Failed to navigate back: {ex.Message}";
             }
         }
-        
+
         /// <summary>
         /// Sends text input to the currently focused element or active input field.
         /// </summary>
@@ -161,15 +161,15 @@ namespace AppiumMcpServer.Tools
                 {
                     // Send keys to specific element
                     var element = _driver.FindElement(By.Id(elementId));
-                    
+
                     if (element == null)
                     {
                         // Try other locator strategies
                         element = _driver.FindElement(By.XPath($"//*[@content-desc='{elementId}']")) ??
-                                 _driver.FindElement(By.XPath($"//*[@text='{elementId}']")) ??
-                                 _driver.FindElement(By.Id(elementId));
+                                  _driver.FindElement(By.XPath($"//*[@text='{elementId}']")) ??
+                                  _driver.FindElement(By.Id(elementId));
                     }
-                    
+
                     if (element != null)
                     {
                         element.SendKeys(text);
@@ -207,7 +207,7 @@ namespace AppiumMcpServer.Tools
                 return $"Failed to send keys: {ex.Message}";
             }
         }
-        
+
         /// <summary>
         /// Presses the Enter key on the device.
         /// </summary>
@@ -259,7 +259,7 @@ namespace AppiumMcpServer.Tools
                 return $"Failed to press Enter key: {ex.Message}";
             }
         }
-        
+
         /// <summary>
         /// Dismisses the soft keyboard if it's currently shown.
         /// </summary>
@@ -334,7 +334,7 @@ namespace AppiumMcpServer.Tools
                 return $"Failed to check keyboard status: {ex.Message}";
             }
         }
-        
+
         /// <summary>
         /// Sets the device orientation to landscape mode.
         /// </summary>
@@ -432,6 +432,104 @@ namespace AppiumMcpServer.Tools
             catch (Exception ex)
             {
                 return $"Failed to set orientation to portrait: {ex.Message}";
+            }
+        }
+
+        /// <summary>
+        /// Lock the screen.
+        /// Functionality that's only available on Android and iOS.
+        /// </summary>
+        [McpServerTool(Name = "appium_lock_screen")]
+        [Description("Locks the device screen. Only available on Android and iOS devices.")]
+        public string LockScreen()
+        {
+            try
+            {
+                if (_driver == null)
+                {
+                    return "No active connection. Use appium_connect_app first.";
+                }
+
+                // Check if driver supports lock functionality
+                if (_driver is not AndroidDriver && _driver is not IOSDriver)
+                {
+                    return "Lock screen is only supported on Android and iOS devices.";
+                }
+
+                // Execute lock command
+                _driver.ExecuteScript("mobile: lock", new Dictionary<string, object>());
+
+                return "Successfully locked the device screen.";
+            }
+            catch (Exception ex)
+            {
+                return $"Failed to lock screen: {ex.Message}";
+            }
+        }
+
+        /// <summary>
+        /// Unlock the screen.
+        /// Functionality that's only available on Android and iOS.
+        /// </summary>
+        [McpServerTool(Name = "appium_unlock_screen")]
+        [Description(
+            "Unlocks the device screen with optional unlock type and key. Only available on Android and iOS devices.")]
+        public string UnlockScreen(string unlockType = "", string unlockKey = "")
+        {
+            try
+            {
+                if (_driver == null)
+                {
+                    return "No active connection. Use appium_connect_app first.";
+                }
+
+                // Check if driver supports unlock functionality
+                if (_driver is not AndroidDriver && _driver is not IOSDriver)
+                {
+                    return "Unlock screen is only supported on Android and iOS devices.";
+                }
+
+                // Validate unlock type if provided
+                if (!string.IsNullOrEmpty(unlockType))
+                {
+                    var validUnlockTypes = new[]
+                        { "pin", "pinWithKeyEvent", "password", "pattern", "fingerprint", "face" };
+                    if (!validUnlockTypes.Contains(unlockType.ToLower()))
+                    {
+                        return
+                            $"Invalid unlock type '{unlockType}'. Valid types are: {string.Join(", ", validUnlockTypes)}";
+                    }
+                }
+
+                // Execute unlock command
+                var parameters = new Dictionary<string, object>();
+
+                if (!string.IsNullOrEmpty(unlockType))
+                {
+                    parameters["unlockType"] = unlockType;
+                }
+
+                if (!string.IsNullOrEmpty(unlockKey))
+                {
+                    parameters["unlockKey"] = unlockKey;
+                }
+
+                _driver.ExecuteScript("mobile: unlock", parameters);
+
+                var message = "Successfully unlocked the device screen";
+
+                if (!string.IsNullOrEmpty(unlockType))
+                {
+                    message += $" using {unlockType}";
+                }
+
+                message += ".";
+
+                return message;
+            }
+            catch (Exception ex)
+            {
+                return $"Failed to unlock screen: {ex.Message}";
             }
         }
     }
